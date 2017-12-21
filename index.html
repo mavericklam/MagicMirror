@@ -36,7 +36,8 @@
 		<div class="region bottom center"><div class="container"></div></div>
 		<div class="region bottom right"><div class="container"></div></div>
 	</div>
-	<div class="region fullscreen above"><div class="container"></div></div>
+	<div class="region fullscreen above"><div class="container"></div>	<canvas id="canvas"><div class="start">Move the mouse to create<div></div></canvas>
+
 	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 	<script type="text/javascript" src="vendor/node_modules/nunjucks/browser/nunjucks.min.js"></script>
 	<script type="text/javascript" src="js/defaults.js"></script>
@@ -51,5 +52,248 @@
 	<script type="text/javascript" src="js/loader.js"></script>
 	<script type="text/javascript" src="js/socketclient.js"></script>
 	<script type="text/javascript" src="js/main.js"></script>
+	<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+	<script src="//js.leapmotion.com/0.3.0-beta2/leap.js"></script>
+
+	<script>
+	var MAX_particles = 1000,
+	    MIN_ALPHA = 0.01,
+	    FPS = 300,
+
+	    canvas, context, stageWidth, stageHeight,
+
+	    mouseX = 0,
+	    mouseY = 0,
+	    lastX = 0,
+	    lastY = 0,
+	    active = false,
+	    particlesleft = [];
+			previousfingers = 0
+
+	$(document).ready(init);
+	init();
+
+	function init() {
+	  canvas = document.getElementById('canvas'),
+	  context = canvas.getContext('2d'),
+	  resize();
+
+	  mouseX = stageWidth * 0.5;
+	  mouseY = stageHeight * 0.5;
+
+	  $(window).resize(resize);
+		$(window).mousedown(function(event) {
+			createBurst(event.pageX,event.pageY);
+		});
+
+		setInterval(onEnterFrame, 1000 / FPS);
+
+
+
+		function resize() {
+			stageWidth = $(window).width();
+			stageHeight = $(window).height();
+			canvas.width = stageWidth;
+			canvas.height = stageHeight;
+		}
+
+		function createParticle(burst,x,y,lx,ly) {
+			let mouseX = x
+			let mouseY = y
+			let lastX = lx
+			let lastY = ly
+			var particle = {
+				size: 3 + (Math.random() * 8),
+				bounce: Math.random(),
+				color: "#"+((1<<24)*Math.random()|0).toString(16),
+				alpha: 1,
+				fade: 0.933 + (Math.random() * 0.05),
+				x: 0,
+				y: 0,
+				vx: 0,
+				vy: 0,
+				rotate: Math.random() * 360,
+				rotateDir: (Math.random > 0.5) ? 7 : -7
+			};
+			particle.x = mouseX;
+			particle.y = mouseY;
+			particle.vx = (burst) ? (0.5 - Math.random()) * 20 : lastX - mouseX;
+			particle.vy = (burst) ? (0.5 - Math.random()) * 20 : lastY - mouseY;
+			particlesleft.push(particle);
+		}
+
+		function createBurst(x,y) {
+			var i = 40;
+			while(--i > -1 && particlesleft.length < MAX_particles) {
+				createParticle(true,x,y);
+			}
+		}
+
+		function onEnterFrame() {
+			context.clearRect(0, 0, stageWidth, stageHeight);
+			/*context.fillStyle = '#000000';
+			context.globalAlpha = 0.1;
+			context.fillRect(0, 0, stageWidth, stageHeight);*/
+
+			var points = 5;
+			var step, halfStep, start, n, dx, dy, outerRadius, innerRadius, angle;
+			var particle;
+			var i = particlesleft.length;
+			while(--i > -1) {
+				particle = particlesleft[i];
+				particle.x += particle.vx;
+				particle.y += particle.vy;
+
+				if(particle.x - particle.size < 0) {
+					particle.x = particle.size;
+					particle.vx = -particle.vx * particle.bounce;
+				}
+				else if(particle.x + particle.size > stageWidth) {
+					particle.x = stageWidth - particle.size;
+					particle.vx = -particle.vx * particle.bounce;
+				}
+
+				if(particle.y - particle.size < 0) {
+					particle.y = particle.size;
+					particle.vy = -particle.vy * particle.bounce;
+				}
+				else if(particle.y + particle.size > stageHeight) {
+					particle.y = stageHeight - particle.size;
+					particle.vy = -particle.vy * particle.bounce;
+				}
+
+				context.fillStyle = particle.color;
+				context.globalAlpha = particle.alpha;
+				context.beginPath();
+
+				outerRadius = particle.size;
+				innerRadius = particle.size * 0.3;
+				step = (Math.PI * 2) / points;
+				halfStep = step / 2;
+				start = (particle.rotate / 180) * Math.PI;
+				context.moveTo( particle.x + (Math.cos( start ) * outerRadius),
+								particle.y - (Math.sin( start ) * outerRadius) );
+
+				for(n = 1; n <= points; ++n) {
+					dx = particle.x + Math.cos(start + (step * n) - halfStep) * innerRadius;
+					dy = particle.y - Math.sin(start + (step * n) - halfStep) * innerRadius;
+					context.lineTo( dx, dy );
+					dx = particle.x + Math.cos(start + (step * n)) * outerRadius;
+					dy = particle.y - Math.sin(start + (step * n)) * outerRadius;
+					context.lineTo(dx, dy);
+				}
+				context.closePath();
+				context.fill();
+
+				particle.alpha *= particle.fade;
+				particle.rotate += particle.rotateDir;
+
+				if(particle.alpha <= MIN_ALPHA) {
+					particlesleft = particlesleft.slice(0,i).concat(particlesleft.slice(i+1));
+				}
+			}
+		}
+
+
+
+
+
+	var ctx = context
+	// Get the canvas width and height
+	var width = canvas.width, height = canvas.height;
+	// Name some colors
+	var red = '#F00', green = '#0F0', blue = '#00F', purple = '#A0F';
+	// Create an array to save circle properties
+	var circles = [ ];
+
+	// Draw a circle with the given parameters:
+	//   center: float array [x, y]
+	//   radius: float > 0
+	//   color: string "#RGB"
+	//   fill: boolean
+	function drawCircle(center, radius, color, fill) {
+	  // Make an closed arc with a complete rotation
+	  ctx.beginPath();
+	  ctx.arc(center[0], center[1], radius, 0, 2*Math.PI);
+	  ctx.closePath();
+	  ctx.lineWidth = 4;
+	  // Choose whether to fill or outline the circle
+	  if (fill) {
+	    ctx.fillStyle = color;
+	    ctx.fill();
+	  } else {
+	    ctx.strokeStyle = color;
+	    ctx.stroke();
+	  }
+	}
+
+	// Transform Leap coordinates to canvas scene coordinates
+	function leapToScene(position) {
+	  var x = position[0];
+	  var y = position[1];
+	  // Shift the Leap origin to the canvas's bottom center and invert the y-axis
+	  return [context.canvas.width/2 + x*2.5, context.canvas.height - y - 20];
+
+	}
+
+	// Create a Leap controller to access frame data
+	var controller = new Leap.Controller();
+	var lastXYs = {}
+	var booming = false
+	drawCircle([width/2, 50], 20, green);
+	// Register a callback to process frame data
+	controller.on('frame', function(frame) {
+	  // Clear the canvas so we can repaint
+
+	  ctx.clearRect(0, 0, width, height);
+		//console.log(ctx)
+	  // Draw a green circle to test the canvas
+
+	  // Make sure we have accumulated at most 200 circles
+	  if (circles.length > 200) {
+	    circles = circles.slice(-200); // Last 200 circles
+	  }
+
+	  // // Redraw accumulated circles
+	  // for (var c = 0; c < circles.length; c = c+1) {
+	  //   // Retrieve the circle properties
+	  //   var center = circles[c].center;
+	  //   var radius = circles[c].radius;
+	  //   // Redraw the circle filled in purple
+	  //   drawCircle(center, radius, purple, true);
+	  // }
+
+	  // Draw finger tips as colored circles
+		// if(previousfingers ==0&&frame.fingers.length>=5){
+		// 	console.log("BOOM")
+		// 	booming = true
+		// 	for(var h = 0; h < frame.hands.length; h = h+1){
+		// 		let palmPosition = leapToScene(frame.hands[h].palmPosition)
+		// 		createBurst(palmPosition[0],palmPosition[1])
+		// 	}
+		// 	setTimeout(function(){booming = false},2000)
+		// }
+			for (var f = 0; f < frame.fingers.length; f = f+1) {
+				var finger = frame.fingers[f];
+				// Calculate the circle center and radius
+				var center = leapToScene(finger.tipPosition);
+				lastXYs[f]={x:center[0],y:center[1]}
+				//console.log(lastXYs)
+				if(particlesleft.length < MAX_particles) createParticle(false,center[0],center[1],lastXYs[f]['x'],lastXYs[f]['y']);
+				lastXYs={}
+		}
+		previousfingers = frame.fingers.length
+		//console.log(frame.hands.palmPosition)
+
+	});
+
+	// Connect the controller to start receiving data
+	controller.connect();
+
+
+	}
+
+
+	</script>
 </body>
 </html>
