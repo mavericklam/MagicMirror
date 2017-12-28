@@ -48,7 +48,7 @@ Temporary Items
 .Trash-*
 
 # Various Magic Mirror ignoramuses and anti-ignoramuses.
-
+/modules/MM*
 # Don't ignore the node_helper core module.
 !/modules/node_helper
 !/modules/node_helper/**

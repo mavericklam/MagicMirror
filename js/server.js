@@ -14,7 +14,33 @@ var ipfilter = require("express-ipfilter").IpFilter;
 var fs = require("fs");
 var helmet = require("helmet");
 var Utils = require(__dirname + "/utils.js");
+var http = require('http');
+var express = require("express");
+var RED = require("node-red");
 
+// Add a simple route for static content served from 'public'
+app.use("/",express.static("public"));
+
+// Create the settings object - see default settings.js file for other options
+var settings = {
+    httpAdminRoot:"/red",
+    httpNodeRoot: "/api",
+    userDir:"../nodered",
+    functionGlobalContext: { }    // enables global context
+};
+
+// Initialise the runtime with a server and settings
+RED.init(server,settings);
+
+// Serve the editor UI from /red
+app.use(settings.httpAdminRoot,RED.httpAdmin);
+
+// Serve the http nodes UI from /api
+app.use(settings.httpNodeRoot,RED.httpNode);
+
+
+// Start the runtime
+RED.start();
 var Server = function(config, callback) {
 
 	var port = config.port;

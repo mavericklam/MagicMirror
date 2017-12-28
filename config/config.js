@@ -28,10 +28,11 @@ var config = {
 	modules: [
 		{
 		  module: 'MMM-Assistant',
-		  position: 'bottom_left',
+		  position: 'bottom_right',
 		  config: {
 				apiai:{
-					token:"2"
+					token:"263f07b05da0462faffa572dc276aa36",
+					language: 'zh'
 				},
 		    assistant: {
 		      auth: {
@@ -46,9 +47,9 @@ var config = {
 		    snowboy: {
 		      models: [
 		        {
-		          file: "resources/smart_mirror.umdl",
-		          sensitivity: 0.5,
-		          hotwords : "MIRROR" //One of models should be "MIRROR"
+		          file: "resources/mjmj.pmdl",
+		          sensitivity: 0.3,
+		          hotwords : "ASSISTANT" //One of models should be "MIRROR"
 		        },
 		        {
 		          file: "resources/snowboy.umdl",
@@ -60,9 +61,18 @@ var config = {
 		    record: {
 		      threshold: 0, //Ignore this. I think you don't need to change this.
 		      verbose:false, //true for checking recording status.
-		      recordProgram: 'arecord', //You can use 'rec', 'sox'. But I recommend use 'arecord'.
-		      silence: 2.0 //Ignore this. I think you don't need to change this.
+		      recordProgram: 'rec', //You can use 'rec', 'sox'. But I recommend use 'arecord'.
+		      silence: '2' //Ignore this. I think you don't need to change this.
 		    },
+				recordSpeech: {
+					sampleRate    : 16000 , // audio sample rate
+					channels      : 1  ,    // number of channels
+					threshold     : 1 ,   // silence threshold (rec only)
+					thresholdStart: null ,  // silence threshold to start recording, overrides threshold (rec only)
+					thresholdEnd  : null ,  // silence threshold to end recording, overrides threshold (rec only)
+					silence       : '1.0' , // seconds of silence before ending
+					verbose       : false  // log info to the console
+				},
 		    stt: {
 		      auth: [{
 		        projectId: '<your google Project ID>', //ProjectId from Google Console
@@ -74,6 +84,11 @@ var config = {
 		        languageCode: 'en-US' //See https://cloud.google.com/speech/docs/languages
 		      },
 		    },
+				baiduVoice:{
+					app_id: "10352969",
+					api_key :"q88Cw9QvxNuu8iTOBFFBLkLO",
+					secret_key:"j6GNAQHSu6NiOYBawruO7VqRTdXauE2z"
+				},
 		    speak: {
 		      useAlert: true, //If you want to show the text of speech, set this true. But It could be ignored by command of modules directly.
 		      language: 'en-US', //If you want to set the default language of speech of command result, set this.
@@ -93,18 +108,41 @@ var config = {
 			position: "top_bar"
 		},
 		{
+		    module: 'MMM-forecast-io',
+		    position: 'top_right',  // This can be any of the regions.
+		    config: {
+		      // See 'Configuration options' for more information.
+		      apiKey: '7421fe835b70e4f74f12fb3f584fabff', // Dark Sky API key.
+		      // Only required if geolocation doesn't work:
+					language:'zh',
+					units:'metric'
+		    }
+		},
+		{
+		    module: 'MMM-LICE',
+		    position: 'top_right',                 // Best in left, center, or right regions
+		    config: {
+					accessKey: "8ecec40c4303b929553b708ec00e5ab4", // Free account & API Access Key at currencylayer.com
+					source: "CNY",                    // USD unless you upgrade from free account
+					symbols: ["HKD","USD","EUR","GBP"],       // Currency symbols
+					useHeader: true,
+					header: "实时汇率",
+					maxWidth: "500px",
+		    }
+		},
+		{
 			module: "clock",
 			position: "top_left"
 		},
 		{
 			module: "calendar",
-			header: "US Holidays",
+			header: "中国假日",
 			position: "top_left",
 			config: {
 				calendars: [
 					{
 						symbol: "calendar-check-o ",
-						url: "webcal://www.calendarlabs.com/templates/ical/US-Holidays.ics"
+						url: "http://www.google.com/calendar/ical/china__zh_cn@holiday.calendar.google.com/public/basic.ics"
 					}
 				]
 			}
@@ -114,32 +152,40 @@ var config = {
 			position: "lower_third"
 		},
 		{
-			module: "currentweather",
-			position: "top_right",
-			config: {
-				location: "Zhuhai,China",
-				locationID: "1790437",  //ID from http://www.openweathermap.org/help/city_list.txt
-				appid: "ec2b980fcd79a7402e05369d116dbf71"
-			}
-		},
-		{
-			module: "weatherforecast",
-			position: "bottom_left",
-			header: "Weather Forecast",
-			config: {
-				location: "",
-				locationID: "",  //ID from http://www.openweathermap.org/help/city_list.txt
-				appid: ""
-			}
+		    module: "MMM-EARTH",
+		    position: "bottom_left",
+		    config: {
+		        mode: "Natural",
+		        rotateInterval: 30000,
+		        MaxWidth: "17%",
+		        MaxHeight: "17%",
+						animationSpeed:0
+		    }
 		},
 		{
 			module: "newsfeed",
-			position: "bottom_bar",
+			position: "bottom_center",
 			config: {
 				feeds: [
 					{
-						title: "New York Times",
-						url: "http://www.nytimes.com/services/xml/rss/nyt/HomePage.xml"
+						title: "即时新闻-中新网",
+						url: "http://www.chinanews.com/rss/scroll-news.xml",
+						encoding:"gb2312"
+					},
+					{
+						title: "国内新闻-中新网",
+						url: "http://www.chinanews.com/rss/china.xml",
+						encoding:"gb2312"
+					},
+					{
+						title: "国际新闻-中新网",
+						url: "http://www.chinanews.com/rss/world.xml",
+						encoding:"gb2312"
+					},
+					{
+						title: "港澳新闻-中新网",
+						url: "http://www.chinanews.com/rss/gangao.xml",
+						encoding:"gb2312"
 					}
 				],
 				showSourceTitle: true,

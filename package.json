@@ -63,6 +63,7 @@
     "iconv-lite": "latest",
     "mocha-logger": "^1.0.5",
     "moment": "latest",
+    "node-red": "^0.17.5",
     "request": "^2.81.0",
     "rrule-alt": "^2.2.5",
     "simple-git": "^1.73.0",
